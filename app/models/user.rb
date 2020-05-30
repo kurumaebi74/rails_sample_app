@@ -31,11 +31,12 @@ class User < ApplicationRecord
   end
 
   # 渡されたトークンがダイジェストと一致したらtrueを返す
-  def authenticated?(remember_token)
-    if remember_digest.nil?
-      false
+  def authenticated?(attribute,token)
+    digest = self.send("#{attribute}_digest")
+    if digest.nil?
+      return false
     else
-      BCrypt::Password.new(remember_digest).is_password?(remember_token)
+      BCrypt::Password.new(digest).is_password?(token)
     end
   end
 
@@ -50,5 +51,9 @@ class User < ApplicationRecord
   def create_activation_digest
     self.activation_token = User.new_token
     self.activation_digest = User.digest(activation_token)
+  end
+
+  def activate
+    self.update_columns(activated: true, activated_at: Time.zone.now)
   end
 end
